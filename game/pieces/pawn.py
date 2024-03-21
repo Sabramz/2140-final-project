@@ -1,9 +1,11 @@
 from piece import Piece
+import pygame
+import os
 
 class Pawn(Piece):
 
     def __init__(self, x, y, team):
-        super().__init__(x, y, team)
+        super().__init__(x, y, team, "pawn")
         # If a pawn has not moved, it may advance one square instead of two
         self.moved = False
 
@@ -17,10 +19,10 @@ class Pawn(Piece):
     x   x   x
     '''
     def possible_moves(self, board):
-        if team == "White":
-            return possible_moves_white(board)
+        if self.team == "White":
+            return self.possible_moves_white(board)
         else:
-            return possible_moves_black(board)
+            return self.possible_moves_black(board)
     
     def possible_moves_white(self, board):
         moves = []
@@ -49,3 +51,11 @@ class Pawn(Piece):
         if not board.open_square(x + 1, y - 1):
             moves.append((x+1, y-1))
         return moves
+
+    def to_image(self):
+        file_name = ""
+        if self.team == "White":
+            file_name = "w_pawn.png"
+        else:
+            file_name = "b_pawn.png"
+        return pygame.image.load(os.path.join('assets', file_name)).convert_alpha()

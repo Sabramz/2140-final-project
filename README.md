@@ -9,11 +9,13 @@ Game assets, such as sprites, can be found in **assets**. All game logic will be
 
 # Running
 
-To run the game:
+To run the game, first you must install the python virtual environment below. Once inside of the virtual environment, run
 
 ```
 python main.py
 ```
+
+To exit the game, just close the game window
 
 # Installation Instructions
 

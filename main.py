@@ -52,7 +52,6 @@ while running:
                                 math.ceil(((mouse_pos[1] - BASE_Y) / SQUARE_SIZE)))
             print(selected_sq)
 
-
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("black")
 

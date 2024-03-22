@@ -68,9 +68,9 @@ class Board:
         images = []
         if not white_turn:
             for pos, piece in self.pieces.items():
-                images.append((piece.to_image(), (pos[0] * SQUARE_SIZE, pos[1] * SQUARE_SIZE)))
+                images.append((piece.to_image(), [8 - pos[0], pos[1] - 1]))
         else:
             for pos, piece in self.pieces.items():
-                images.append((piece.to_image(), (pos[0] * SQUARE_SIZE, (9 - pos[1]) * SQUARE_SIZE)))
+                images.append((piece.to_image(), [pos[0] - 1, 8 - pos[1]]))
         return images
 

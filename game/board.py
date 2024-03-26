@@ -4,6 +4,7 @@ from game.pieces.queen import Queen
 from game.pieces.bishop import Bishop
 from game.pieces.knight import Knight
 from game.pieces.rook import Rook
+from game.pieces.empty import Empty
 
 SQUARE_SIZE = 60
 
@@ -12,26 +13,52 @@ class Board:
     # Initialize the board to a new game of chess
     def __init__(self):
         self.pieces = { \
-            (1,8): Rook(1,8, "Black"), (2,8): Knight(2, 8, "Black"), (3, 8): Bishop(3,8, "Black"), (4, 8): Queen(4, 8, "Black"), \
-            (5,8): King(5,8, "Black"), (6,8): Bishop(6, 8, "Black"), (7, 8): Knight(7,8, "Black"), (8, 8): Rook(8, 8, "Black"), \
-            (1,7): Pawn(1,7,"Black"), (2,7): Pawn(2, 7, "Black"), (3,7): Pawn(3, 7, "Black"), (4,7): Pawn(4, 7, "Black"), \
-            (5,7): Pawn(5, 7, "Black"), (6,7): Pawn(6, 7, "Black"), (7,7): Pawn(7, 7, "Black"), (8,7): Pawn(8, 7, "Black"), \
-            (1,2): Pawn(1,2,"White"), (2,2): Pawn(2, 2, "White"), (3,2): Pawn(3, 2, "White"), (4,2): Pawn(4, 2, "White"), \
-            (5,2): Pawn(5, 2, "White"), (6,2): Pawn(6, 2, "White"), (7,2): Pawn(7, 2, "White"), (8,2): Pawn(8, 2, "White"), \
-            (1,1): Rook(1,1, "White"), (2,1): Knight(2, 1, "White"), (3, 1): Bishop(3,1, "White"), (4, 1): Queen(4, 1, "White"), \
-            (5,1): King(5,1, "White"), (6,1): Bishop(6, 1, "White"), (7, 1): Knight(7,1, "White"), (8, 1): Rook(8, 1, "White") \
+            (1,8): Rook("Black"), (2,8): Knight("Black"), (3, 8): Bishop("Black"), (4, 8): Queen("Black"), (5,8): King("Black"), (6,8): Bishop("Black"), (7, 8): Knight("Black"), (8, 8): Rook("Black"), \
+            (1,7): Pawn("Black"), (2,7): Pawn("Black"), (3,7): Pawn("Black"), (4,7): Pawn("Black"), (5,7): Pawn("Black"), (6,7): Pawn("Black"), (7,7): Pawn("Black"), (8,7): Pawn("Black"), \
+            
+
+
+
+
+
+            (1,2): Pawn("White"), (2,2): Pawn("White"), (3,2): Pawn("White"), (4,2): Pawn("White"), (5,2): Pawn("White"), (6,2): Pawn("White"), (7,2): Pawn("White"), (8,2): Pawn("White"), \
+            (1,1): Rook("White"), (2,1): Knight("White"), (3, 1): Bishop("White"), (4, 1): Queen("White"), (5,1): King("White"), (6,1): Bishop("White"), (7, 1): Knight("White"), (8, 1): Rook("White") \
         }
+        for x in range(1, 9):
+            for y in range(3, 7):
+                self.pieces[(x, y)] = Empty()
 
     # get piece at position
     def get_piece(self, pos):
-        if not pos in self.pieces:
-            raise ValueError("There is no piece at " + str(pos))
-        return pos
+        if pos not in self.pieces:
+            return
+        return self.pieces[pos]
+    
+    # get possible moves of piece
+    def get_possible_moves(self, pos):
+        if pos not in self.pieces:
+            return []
+        return self.pieces[pos].possible_moves(self, pos)
 
     # determine if a square is open
-    # pos is a tuple (x, y)
-    def open_square(self, pos):
-        return pos in self.pieces
+    def open_square(self, x, y):
+        return self.pieces[(x, y)].empty()
+    
+    # determine if an enemy piece is at a position
+    def enemy_piece(self, pos, team):
+        if team == "White":
+            if pos in self.pieces:
+                if self.pieces[pos].team == "Black":
+                    return True
+        elif team == "Black":
+            if pos in self.pieces:
+                if self.pieces[pos].team == "White":
+                    return True
+        return False
+    
+    # determine if a piece can move to a square
+    def moveable(self, pos, team):
+        return self.open_square(pos[0], pos[1]) or self.enemy_piece(pos, team)
     
     # determine if a piece at a square is on your team
     # pos is a tuple (x, y)
@@ -58,9 +85,9 @@ class Board:
     # Get all of the possible moves of one team
     def team_possible_moves(self, team):
         possible_moves = set()
-        for piece in self.pieces:
-            if piece.team == team:
-                possible_moves.update(set(piece.possible_moves()))
+        for pos, piece in self.pieces.items():
+            if piece.team == team and not piece.is_king():
+                possible_moves.update(piece.possible_moves(self, pos))
         return possible_moves
         
     # return the board as an image for pygame to display
@@ -68,9 +95,18 @@ class Board:
         images = []
         if not white_turn:
             for pos, piece in self.pieces.items():
-                images.append((piece.to_image(), [8 - pos[0], pos[1] - 1]))
+                image = piece.to_image()
+                if image != None:
+                    images.append((image, [8 - pos[0], pos[1] - 1]))
         else:
             for pos, piece in self.pieces.items():
-                images.append((piece.to_image(), [pos[0] - 1, 8 - pos[1]]))
+                image = piece.to_image()
+                if image != None:
+                    images.append((image, [pos[0] - 1, 8 - pos[1]]))
         return images
 
+    def move_to(self, pos, square):
+        self.pieces[pos].move()
+        self.pieces[square] = self.pieces[pos]
+        self.pieces[pos] = Empty()
+        return True

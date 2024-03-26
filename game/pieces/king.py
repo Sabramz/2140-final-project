@@ -4,28 +4,58 @@ import os
 
 class King(Piece):
 
-    def __init__(self, x, y, team):
-        super().__init__(x, y, team, "king")
+    def __init__(self, team):
+        super().__init__(team, "king")
     
     # Each piece has a different set of possible moves.
-    def possible_moves(self, board):
-        x = self.x
-        y = self.y
+    def possible_moves(self, board, pos):
+        x = pos[0]
+        y = pos[1]
+        moves = set()
        
-        possible_moves = set([ (x-1,y+1), (x, y+1), (x+1,y+1), (x-1,y), (x+1,y), (x-1,y-1), (x, y-1), (x+1,y-1) ])
+       # TODO: Make sure x and y are in bounds
+        if y + 1 < 8:
+            if board.open_square(x,y):
+                moves.add((x, y + 1))
+        if y - 1 > 1:
+            if board.open_square(x,y):
+                moves.add((x, y - 1))
+        if x + 1 < 8:
+            if board.open_square(x,y):
+                moves.add((x + 1, y))
+        if 1 < x - 1:
+            if board.open_square(x,y):
+                moves.add((x - 1, y))
+
+        if y + 1 < 8 and x + 1 < 8:
+            if board.open_square(x,y):
+                moves.add((x + 1, y + 1))
+        if y - 1 > 1 and x + 1 < 8:
+            if board.open_square(x,y):
+                moves.add((x + 1, y - 1))
+        if x - 1 < 8 and y - 1 > 1:
+            if board.open_square(x,y):
+                moves.add((x - 1, y - 1))
+        if 1 < x - 1 and y + 1 < 8:
+            if board.open_square(x,y):
+                moves.add((x - 1, y + 1))
+
         other_team_moves = set()
         if self.team == "White":
+            pass
             other_team_moves = board.team_possible_moves("Black")
         else:
+            pass
             other_team_moves = board.team_possible_moves("White")
         
         impossible_moves = set()
-        for move in possible_moves:
+        for move in moves:
             if move in other_team_moves:
                 impossible_moves.add(move)
         
-        return possible_moves.symmetric_difference(impossible_moves)
-                
+        return moves.symmetric_difference(impossible_moves)
+        
+    
 
 
     # override

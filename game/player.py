@@ -19,5 +19,3 @@ class Player:
         # if the program makes it here, then the piece was not present in the array
         raise ValueError(str(piece) + " is not one of the player's pieces")
     
-
-

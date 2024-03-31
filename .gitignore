@@ -6,3 +6,6 @@
 
 # OS specific
 *.DS_Store
+
+# VS code
+.vscode/

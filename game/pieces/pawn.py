@@ -1,3 +1,4 @@
+import copy
 from piece import Piece
 import pygame
 import os
@@ -18,11 +19,22 @@ class Pawn(Piece):
     x   P   x
     x   x   x
     '''
-    def possible_moves(self, board, pos):
+    def possible_moves(self, board, pos, check_legal = True):
         if self.team == "White":
-            return self.possible_moves_white(board, pos)
+            moves = self.possible_moves_white(board, pos)
         else:
-            return self.possible_moves_black(board, pos)
+            moves = self.possible_moves_black(board, pos)
+        
+        if check_legal:
+            illegal_moves = set()
+            for move in moves:
+                new_board = copy.deepcopy(board)
+                new_board.move_to(pos, move)
+                if not new_board.is_legal(self.team):
+                    illegal_moves.add(move)
+            moves = moves.symmetric_difference(illegal_moves)
+        
+        return moves
     
     def possible_moves_white(self, board, pos):
         moves = set()
@@ -30,7 +42,7 @@ class Pawn(Piece):
         y = pos[1]
         if board.open_square(x, 1 + y):
             moves.add((x, y+1))
-        if not self.moved and board.open_square(x, y + 2):
+        if not self.moved and board.open_square(x, y + 1) and board.open_square(x, y + 2):
             moves.add((x, y+2))
         if board.enemy_piece((x - 1, y + 1), self.team):
             moves.add((x-1, y+1))
@@ -44,13 +56,29 @@ class Pawn(Piece):
         y = pos[1]
         if board.open_square(x, y - 1):
             moves.add((x, y-1))
-        if not self.moved and board.open_square(x, y - 2):
+        if not self.moved and board.open_square(x, y - 1) and board.open_square(x, y - 2):
             moves.add((x, y-2))
         if board.enemy_piece((x - 1, y - 1), self.team):
             moves.add((x-1, y-1))
         if board.enemy_piece((x + 1, y - 1), self.team):
             moves.add((x+1, y-1))
         return moves
+
+    def protects(self, board, pos):
+        if self.team == "White":
+            return self.protected_white(board, pos)
+        else:
+            return self.protected_black(board, pos)
+        
+    def protected_white(self, board, pos):
+        x = pos[0]
+        y = pos[1]
+        return set([(x-1, y+1), (x+1,y+1)])
+
+    def protected_black(self, board, pos):
+        x = pos[0]
+        y = pos[1]
+        return set([(x-1, y-1), (x+1,y-1)])
 
     def to_image(self):
         file_name = ""
@@ -62,3 +90,7 @@ class Pawn(Piece):
 
     def move(self):
         self.moved = True
+
+    # override
+    def is_pawn(self):
+        return True

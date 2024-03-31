@@ -38,10 +38,12 @@ class Board:
     def get_possible_moves(self, pos):
         if pos not in self.pieces:
             return []
-        return self.pieces[pos].possible_moves(self, pos)
+        return self.pieces[pos].possible_moves(self, pos, True)
 
     # determine if a square is open
     def open_square(self, x, y):
+        if not (x, y) in self.pieces:
+            return False
         return self.pieces[(x, y)].empty()
     
     # determine if an enemy piece is at a position
@@ -68,27 +70,56 @@ class Board:
             return piece.team == other_piece.team
         return False
 
-    # Check to see if there is a checkmate on the board. True
-    # def checkmate(self):
-    #     # imp: check to see if each king is in the possible moves of another piece
-    #     # if so, check to see if it has any possible moves. If not, 
-    #     kings = []
-    #     for piece in self.pieces:
-    #         if piece.is_king():
-    #             kings.append(piece)
-    #     for k in kings:
-    #         if len(k.possible_moves()) == 0:
-    #             return k.team
-
-        
-
-    # Get all of the possible moves of one team
-    def team_possible_moves(self, team):
+    # Check to see if there is a checkmate on the board.
+    # imp: if there are no possible moves to make, then there is a checkmate
+    def checkmate(self, team):
         possible_moves = set()
         for pos, piece in self.pieces.items():
-            if piece.team == team and not piece.is_king():
-                possible_moves.update(piece.possible_moves(self, pos))
-        return possible_moves
+            if piece.is_king() and piece.team == team and not piece.in_check(self, pos):
+                return False
+            if piece.team == team:
+                possible_moves.update(piece.possible_moves(self, pos, True))
+        return len(possible_moves) == 0
+
+    # determine if a stalemate is on the board
+    def stalemate(self, team):
+        possible_moves = set()
+        for pos, piece in self.pieces.items():
+            if piece.is_king() and piece.team == team and piece.in_check(self, pos):
+                return False
+            if piece.team == team:
+                possible_moves.update(piece.possible_moves(self, pos, True))
+        return len(possible_moves) == 0
+
+    # Get all of the protected squares of one team
+    def protected_squares(self, team, king_pos):
+        protected_squares = set()
+        king = self.pieces.pop(king_pos)
+        self.pieces[king_pos] = Empty()
+        for pos, piece in self.pieces.items():
+            if piece.team == team:
+                protected_squares.update(piece.protects(self, pos))
+        self.pieces[king_pos] = king
+        return protected_squares
+    
+    def possible_moves(self, team, check_legal = True):
+        moves = set()
+        for pos, piece in self.pieces.items():
+            if piece.team == team:
+                if piece.is_king():
+                    moves.update(piece.king_moves(self, pos))
+                else: 
+                    moves.update(piece.possible_moves(self, pos, check_legal))
+        return moves
+    
+    # Get the piece(s) that are attacking a kin
+    def king_attackers(self, king_pos, team):
+        pieces = []
+        for pos, piece in self.pieces.items():
+            if piece.team == team:
+                if king_pos in piece.possible_moves(self, pos):
+                    pieces.append((pos, piece))
+        return pieces
         
     # return the board as an image for pygame to display
     def piece_images(self, white_turn):
@@ -106,7 +137,41 @@ class Board:
         return images
 
     def move_to(self, pos, square):
+        if self.pieces[pos].is_king() and abs(pos[0] - square[0]) > 1:
+            if self.pieces[pos].team == "White":
+                if square[0] == 7:
+                    self.pieces[(6, 1)] = self.pieces[(8, 1)]
+                    self.pieces[(8, 1)] = Empty()
+                if square[0] == 3:
+                    self.pieces[(4, 1)] = self.pieces[(1, 1)]
+                    self.pieces[(1, 1)] = Empty()
+            if self.pieces[pos].team == "Black":
+                if square[0] == 7:
+                    self.pieces[(6, 8)] = self.pieces[(8, 8)]
+                    self.pieces[(8, 8)] = Empty()
+                if square[0] == 3:
+                    self.pieces[(4, 8)] = self.pieces[(1, 8)]
+                    self.pieces[(1, 8)] = Empty()
         self.pieces[pos].move()
         self.pieces[square] = self.pieces[pos]
         self.pieces[pos] = Empty()
+
+    # determine if a board is legal
+    def is_legal(self, team):
+        for pos, piece in self.pieces.items():
+            if piece.is_king() and piece.team == team and piece.in_check(self, pos):
+                return False
         return True
+
+    # determine if a pawn should be promoted
+    def promotion(self, team):
+        if team == "White":
+            for pos, piece in self.pieces.items():
+                if piece.team == team and piece.is_pawn() and pos[1] == 8:
+                    return pos
+        if team == "Black":
+            for pos, piece in self.pieces.items():
+                if piece.team == team and piece.is_pawn() and pos[1] == 1:
+                    print("BLACK PROMO")
+                    return pos
+        return None

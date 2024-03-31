@@ -1,17 +1,25 @@
 import math
 import os
 import sys
+
 # Add pieces directory to python path so modules can be imported from another directory
 script_dir = os.path.dirname( __file__ )
 mymodule_dir = os.path.join( script_dir, 'game', 'pieces' )
 sys.path.append( mymodule_dir )
 
+from game.pieces.bishop import Bishop
+from game.pieces.knight import Knight
+from game.pieces.queen import Queen
+from game.pieces.rook import Rook
+
 from game.board import Board
-from game.player import Player
 
 # pygame setup
 import pygame
 pygame.init()
+pygame.freetype.init()
+my_font = pygame.freetype.SysFont(pygame.font.get_default_font(), 30)
+
 SCREEN_X = 1280
 SCREEN_Y = 720
 screen = pygame.display.set_mode((SCREEN_X, SCREEN_Y))
@@ -40,6 +48,10 @@ piece_selected = False
 move_to = (-1, -1)
 # posible moves of selected piece
 poss_moves = []
+# flag for a pawn at the end of the board
+pawn_at_end = False
+# flag set when a player has made a move
+moved = False
 
 while running:
     
@@ -54,7 +66,23 @@ while running:
                     # TODO: Make these functions
                     selected_sq = ( math.ceil((mouse_pos[0] - BASE_X) / SQUARE_SIZE), \
                                     9 - math.ceil(((mouse_pos[1] - BASE_Y) / SQUARE_SIZE)))
-                    if 1 <= selected_sq[0] and selected_sq[0] <= 8 and 1 <= selected_sq[1] and selected_sq[1] <= 8:
+                    if pawn_at_end:
+                        pawn = b.promotion("White")
+                        x = pawn[0]
+                        if selected_sq[0] == x:
+                            if selected_sq[1] == 8:
+                                b.pieces[promote] = Queen(team)
+                                pawn_at_end = False
+                            elif selected_sq[1] == 7:
+                                b.pieces[promote] = Knight(team)
+                                pawn_at_end = False
+                            elif selected_sq[1] == 6:
+                                b.pieces[promote] = Rook(team)
+                                pawn_at_end = False
+                            elif selected_sq[1] == 5:
+                                b.pieces[promote] = Bishop(team)
+                                pawn_at_end = False
+                    elif 1 <= selected_sq[0] and selected_sq[0] <= 8 and 1 <= selected_sq[1] and selected_sq[1] <= 8:
                         if b.get_piece(selected_sq).team == "Black":
                             selected_sq = (-1, -1)
                             piece_selected = False
@@ -63,11 +91,28 @@ while running:
                 else:
                     selected_sq = ( 9 - math.ceil((mouse_pos[0] - BASE_X) / SQUARE_SIZE), \
                                     math.ceil(((mouse_pos[1] - BASE_Y) / SQUARE_SIZE)))
-                    if b.get_piece(selected_sq).team == "White":
-                        selected_sq = (-1, -1)
-                        piece_selected = False
-                    else:
-                        piece_selected = True
+                    if pawn_at_end:
+                        pawn = b.promotion("Black")
+                        x = pawn[0]
+                        if selected_sq[0] == x:
+                            if selected_sq[1] == 1:
+                                b.pieces[promote] = Queen(team)
+                                pawn_at_end = False
+                            elif selected_sq[1] == 2:
+                                b.pieces[promote] = Knight(team)
+                                pawn_at_end = False
+                            elif selected_sq[1] == 3:
+                                b.pieces[promote] = Rook(team)
+                                pawn_at_end = False
+                            elif selected_sq[1] == 4:
+                                b.pieces[promote] = Bishop(team)
+                                pawn_at_end = False
+                    elif 1 <= selected_sq[0] and selected_sq[0] <= 8 and 1 <= selected_sq[1] and selected_sq[1] <= 8:
+                        if b.get_piece(selected_sq).team == "White":
+                            selected_sq = (-1, -1)
+                            piece_selected = False
+                        else:
+                            piece_selected = True
                 
             else:
                 if white_turn:
@@ -81,7 +126,7 @@ while running:
                         b.move_to(selected_sq, (move_to[0], move_to[1]))
                         selected_sq = (-1, -1)
                         move_to = (-1, -1)
-                        white_turn = not white_turn
+                        moved = True
                         piece_selected = False
                     else:
                         if white_turn and b.get_piece(move_to).team == "Black" \
@@ -140,7 +185,31 @@ while running:
         p[1][1] = BASE_Y + p[1][1] * SQUARE_SIZE
         screen.blit(p[0], p[1])
 
-    if piece_selected:
+    if pawn_at_end:
+        if white_turn:
+            promote = b.promotion("White")
+        else:
+            promote = b.promotion("Black")
+        x = promote[0]
+        y = promote[1]
+        if white_turn:
+            team = "White"
+            x = x - 1
+            y = 8 - y
+        else:
+            team = "Black"
+            x = 8 - x
+            y = y - 1
+        pygame.draw.rect(screen, "grey", pygame.Rect((BASE_X + x * SQUARE_SIZE, BASE_Y + y * SQUARE_SIZE), (SQUARE_SIZE, SQUARE_SIZE * 4)))
+        screen.blit(Queen(team).to_image(), (BASE_X + x * SQUARE_SIZE, BASE_Y + y * SQUARE_SIZE))
+        screen.blit(Knight(team).to_image(), (BASE_X + x * SQUARE_SIZE, BASE_Y + y * SQUARE_SIZE + 1 * SQUARE_SIZE)) #knight
+        screen.blit(Rook(team).to_image(), (BASE_X + x * SQUARE_SIZE, BASE_Y + y * SQUARE_SIZE + 2 * SQUARE_SIZE))
+        screen.blit(Bishop(team).to_image(), (BASE_X + x * SQUARE_SIZE, BASE_Y + y * SQUARE_SIZE + 3 * SQUARE_SIZE))
+
+    if (not b.promotion("White") == None or not b.promotion("Black") == None) and not pawn_at_end:
+        pawn_at_end = True
+
+    if piece_selected and not pawn_at_end:
         if white_turn:
             for move in b.get_possible_moves(selected_sq):
                 pygame.draw.circle(screen, "grey", pygame.Vector2((BASE_X + move[0] * SQUARE_SIZE) - (SQUARE_SIZE / 2), (BASE_Y + (9 - move[1]) * SQUARE_SIZE) - (SQUARE_SIZE / 2)), SQUARE_SIZE * 0.25)
@@ -148,7 +217,28 @@ while running:
             for move in b.get_possible_moves(selected_sq):
                 pygame.draw.circle(screen, "grey", pygame.Vector2((BASE_X + (9 - move[0]) * SQUARE_SIZE) - (SQUARE_SIZE / 2), (BASE_Y + move[1] * SQUARE_SIZE) - (SQUARE_SIZE / 2)), SQUARE_SIZE * 0.25)
 
+    if b.checkmate("White"):
+        render = my_font.render("Black Wins")
+        text = render[0]
+        rect = pygame.Rect((SCREEN_X / 2 - (render[1].w / 2) - 5, SCREEN_Y / 2 - (render[1].h / 2) - 5), (render[1].w + 10, render[1].h + 10))
+        pygame.draw.rect(screen, "white", rect)
+        screen.blit(text, (SCREEN_X / 2 - (render[1].w / 2), SCREEN_Y / 2 - (render[1].h / 2)))
+    elif b.checkmate("Black"):
+        render = my_font.render("White Wins")
+        text = render[0]
+        rect = pygame.Rect((SCREEN_X / 2 - (render[1].w / 2) - 5, SCREEN_Y / 2 - (render[1].h / 2) - 5), (render[1].w + 10, render[1].h + 10))
+        pygame.draw.rect(screen, "white", rect)
+        screen.blit(text, (SCREEN_X / 2 - (render[1].w / 2), SCREEN_Y / 2 - (render[1].h / 2)))
+    elif (white_turn and b.stalemate("White")) or (not white_turn and b.stalemate("Black")):
+        render = my_font.render("Stalemate")
+        text = render[0]
+        rect = pygame.Rect((SCREEN_X / 2 - (render[1].w / 2) - 5, SCREEN_Y / 2 - (render[1].h / 2) - 5), (render[1].w + 10, render[1].h + 10))
+        pygame.draw.rect(screen, "white", rect)
+        screen.blit(text, (SCREEN_X / 2 - (render[1].w / 2), SCREEN_Y / 2 - (render[1].h / 2)))
     
+    if moved and not pawn_at_end:
+        moved = False
+        white_turn = not white_turn
 
     # flip() the display to put your work on screen
     pygame.display.flip()

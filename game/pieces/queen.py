@@ -1,3 +1,4 @@
+import copy
 from piece import Piece
 import pygame
 import os
@@ -9,7 +10,7 @@ class Queen(Piece):
 
     
     # Each piece has a different set of possible moves.
-    def possible_moves(self, board, pos):
+    def possible_moves(self, board, pos, check_legal = True):
         moves = set()
         x = pos[0]
         y = pos[1]
@@ -113,6 +114,15 @@ class Queen(Piece):
                     flag = True
             else:
                 break
+
+        if check_legal:
+            illegal_moves = set()
+            for move in moves:
+                new_board = copy.deepcopy(board)
+                new_board.move_to(pos, move)
+                if not new_board.is_legal(self.team):
+                    illegal_moves.add(move)
+            moves = moves.symmetric_difference(illegal_moves)
 
         return moves
 

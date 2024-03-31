@@ -1,3 +1,4 @@
+import copy
 from piece import Piece
 import pygame
 import os
@@ -8,11 +9,12 @@ class Bishop(Piece):
         super().__init__(team, "bishop")
     
     # Each piece has a different set of possible moves.
-    def possible_moves(self, board, pos):
+    def possible_moves(self, board, pos, check_legal = True):
         moves = set()
         x = pos[0]
         y = pos[1]
         flag = False
+
         # up right
         while x < 8 and y < 8 and not flag:
             x += 1
@@ -24,9 +26,11 @@ class Bishop(Piece):
                     flag = True
             else:
                 break
+        
         x = pos[0]
         y = pos[1]
         flag = False
+
         # down right
         while x < 8 and 1 < y and not flag:
             x += 1
@@ -37,9 +41,11 @@ class Bishop(Piece):
                     flag = True
             else:
                 break
+       
         x = pos[0]
         y = pos[1]
         flag = False
+        
         # down left
         while 1 < x and 1 < y  and not flag:
             x -= 1
@@ -50,9 +56,11 @@ class Bishop(Piece):
                     flag = True
             else:
                 break
+        
         x = pos[0]
         y = pos[1]
         flag = False
+        
         # up left
         while 1 < x and y < 8 and not flag:
             x -= 1
@@ -63,8 +71,68 @@ class Bishop(Piece):
                     flag = True
             else:
                 break
+        
+        if check_legal:
+            illegal_moves = set()
+            for move in moves:
+                new_board = copy.deepcopy(board)
+                new_board.move_to(pos, move)
+                if not new_board.is_legal(self.team):
+                    illegal_moves.add(move)
+            moves = moves.symmetric_difference(illegal_moves)
+
+        return moves
+    
+    def protects(self, board, pos):
+        moves = set()
+        x = pos[0]
+        y = pos[1]
+        flag = False
+        # up right
+        while x < 8 and y < 8 and not flag:
+            x += 1
+            y += 1
+            moves.add((x,y))
+            if board.enemy_piece((x,y), self.team) or not board.moveable((x,y), self.team):
+                flag = True
+            else:
+                break
+        x = pos[0]
+        y = pos[1]
+        flag = False
+        # down right
+        while x < 8 and 1 < y and not flag:
+            x += 1
+            y -= 1
+            if board.enemy_piece((x,y), self.team) or not board.moveable((x,y), self.team):
+                flag = True
+            else:
+                break
+        x = pos[0]
+        y = pos[1]
+        flag = False
+        # down left
+        while 1 < x and 1 < y  and not flag:
+            x -= 1
+            y -= 1
+            if board.enemy_piece((x,y), self.team) or not board.moveable((x,y), self.team):
+                flag = True
+            else:
+                break
+        x = pos[0]
+        y = pos[1]
+        flag = False
+        # up left
+        while 1 < x and y < 8 and not flag:
+            x -= 1
+            y += 1
+            if board.enemy_piece((x,y), self.team) or not board.moveable((x,y), self.team):
+                flag = True
+            else:
+                break
             moves.add((x,y))
         return moves
+
 
     def to_image(self):
         file_name = ""

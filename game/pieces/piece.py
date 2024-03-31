@@ -9,22 +9,29 @@ class Piece(ABC):
             raise ValueError(str(team) + " is not a valid team")
         self.team = team
         self.name = name
-        # Boolean: True if piece on board, False if piece off board
-        self.active = True
+        self.moved = False
 
     def __repr__(self):
         return self.name
     
     # Each piece has a different set of possible moves.
     @abstractmethod
-    def possible_moves(self, board, pos):
+    def possible_moves(self, board, pos, check_legal = True):
         pass
+
+    # Returns the set of squares that this pieces protects (incl teamates)
+    # @abstractmethod
+    def protects(self, board, pos):
+        return self.possible_moves(board, pos)
     
     # definition of sameness for a piece
     def same_piece(self, piece):
         return self.team == piece.team and self.name == self.name
 
     def is_king(self):
+        return False
+
+    def is_pawn(self):
         return False
 
     @abstractmethod

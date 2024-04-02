@@ -82,57 +82,6 @@ class Bishop(Piece):
             moves = moves.symmetric_difference(illegal_moves)
 
         return moves
-    
-    def protects(self, board, pos):
-        moves = set()
-        x = pos[0]
-        y = pos[1]
-        flag = False
-        # up right
-        while x < 8 and y < 8 and not flag:
-            x += 1
-            y += 1
-            moves.add((x,y))
-            if board.enemy_piece((x,y), self.team) or not board.moveable((x,y), self.team):
-                flag = True
-            else:
-                break
-        x = pos[0]
-        y = pos[1]
-        flag = False
-        # down right
-        while x < 8 and 1 < y and not flag:
-            x += 1
-            y -= 1
-            if board.enemy_piece((x,y), self.team) or not board.moveable((x,y), self.team):
-                flag = True
-            else:
-                break
-        x = pos[0]
-        y = pos[1]
-        flag = False
-        # down left
-        while 1 < x and 1 < y  and not flag:
-            x -= 1
-            y -= 1
-            if board.enemy_piece((x,y), self.team) or not board.moveable((x,y), self.team):
-                flag = True
-            else:
-                break
-        x = pos[0]
-        y = pos[1]
-        flag = False
-        # up left
-        while 1 < x and y < 8 and not flag:
-            x -= 1
-            y += 1
-            if board.enemy_piece((x,y), self.team) or not board.moveable((x,y), self.team):
-                flag = True
-            else:
-                break
-            moves.add((x,y))
-        return moves
-
 
     def to_image(self):
         file_name = ""

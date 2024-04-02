@@ -41,6 +41,7 @@ class King(Piece):
             if board.moveable((x-1,y+1), self.team):
                 moves.add((x - 1, y + 1))
 
+        # if king hasn't moved, it can castle
         if not self.moved:
             if self.team == "White":
                 # queenside
@@ -68,6 +69,7 @@ class King(Piece):
         
         return moves
     
+    # simply return king's possible moves without check for legality
     def king_moves(self, board, pos):
         x = pos[0]
         y = pos[1]
@@ -101,6 +103,7 @@ class King(Piece):
             
         return moves
     
+    # determine if this king is in check
     def in_check(self, board, pos):
         
         if self.team == "White":
@@ -109,32 +112,6 @@ class King(Piece):
             other_team_moves = board.possible_moves("White", False)
 
         return pos in other_team_moves
-        
-    def protects(self, board, pos):
-        x = pos[0]
-        y = pos[1]
-        moves = set()
-    
-        if y + 1 < 8:
-            moves.add((x, y + 1))
-        if y - 1 > 1:
-            moves.add((x, y - 1))
-        if x + 1 < 8:
-            moves.add((x + 1, y))
-        if 1 < x - 1:
-            moves.add((x - 1, y))
-
-        if y + 1 < 8 and x + 1 < 8:
-            moves.add((x + 1, y + 1))
-        if y - 1 > 1 and x + 1 < 8:
-            moves.add((x + 1, y - 1))
-        if x - 1 < 8 and y - 1 > 1:
-            moves.add((x - 1, y - 1))
-        if 1 < x - 1 and y + 1 < 8:
-            moves.add((x - 1, y + 1))
-        
-        return moves
-
 
     # override
     def is_king(self):

@@ -61,9 +61,10 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
+
+            # select a piece
             if piece_selected == False:
                 if white_turn:
-                    # TODO: Make these functions
                     selected_sq = ( math.ceil((mouse_pos[0] - BASE_X) / SQUARE_SIZE), \
                                     9 - math.ceil(((mouse_pos[1] - BASE_Y) / SQUARE_SIZE)))
                     if pawn_at_end:
@@ -88,6 +89,7 @@ while running:
                             piece_selected = False
                         else:
                             piece_selected = True
+                # since coords are flipped, black has different positioning
                 else:
                     selected_sq = ( 9 - math.ceil((mouse_pos[0] - BASE_X) / SQUARE_SIZE), \
                                     math.ceil(((mouse_pos[1] - BASE_Y) / SQUARE_SIZE)))
@@ -114,6 +116,7 @@ while running:
                         else:
                             piece_selected = True
                 
+            # a piece has been selected, so handle moving
             else:
                 if white_turn:
                     move_to = ( math.ceil((mouse_pos[0] - BASE_X) / SQUARE_SIZE), \
@@ -161,6 +164,7 @@ while running:
             else:
                 col += 1
                 row = 1
+    # render a different board for black turn
     else:
         for s in squares:
             color = ""
@@ -185,6 +189,7 @@ while running:
         p[1][1] = BASE_Y + p[1][1] * SQUARE_SIZE
         screen.blit(p[0], p[1])
 
+    # Stop game to promote a pawn
     if pawn_at_end:
         if white_turn:
             promote = b.promotion("White")
@@ -206,9 +211,11 @@ while running:
         screen.blit(Rook(team).to_image(), (BASE_X + x * SQUARE_SIZE, BASE_Y + y * SQUARE_SIZE + 2 * SQUARE_SIZE))
         screen.blit(Bishop(team).to_image(), (BASE_X + x * SQUARE_SIZE, BASE_Y + y * SQUARE_SIZE + 3 * SQUARE_SIZE))
 
+    # set flag for pawn at end of board
     if (not b.promotion("White") == None or not b.promotion("Black") == None) and not pawn_at_end:
         pawn_at_end = True
 
+    # Draw possible moves
     if piece_selected and not pawn_at_end:
         if white_turn:
             for move in b.get_possible_moves(selected_sq):
@@ -217,6 +224,7 @@ while running:
             for move in b.get_possible_moves(selected_sq):
                 pygame.draw.circle(screen, "grey", pygame.Vector2((BASE_X + (9 - move[0]) * SQUARE_SIZE) - (SQUARE_SIZE / 2), (BASE_Y + move[1] * SQUARE_SIZE) - (SQUARE_SIZE / 2)), SQUARE_SIZE * 0.25)
 
+    # check for checkmate and stalemate
     if b.checkmate("White"):
         render = my_font.render("Black Wins")
         text = render[0]
@@ -236,6 +244,7 @@ while running:
         pygame.draw.rect(screen, "white", rect)
         screen.blit(text, (SCREEN_X / 2 - (render[1].w / 2), SCREEN_Y / 2 - (render[1].h / 2)))
     
+    # Resume game after pawn is promoted
     if moved and not pawn_at_end:
         moved = False
         white_turn = not white_turn

@@ -90,17 +90,6 @@ class Board:
             if piece.team == team:
                 possible_moves.update(piece.possible_moves(self, pos, True))
         return len(possible_moves) == 0
-
-    # Get all of the protected squares of one team
-    def protected_squares(self, team, king_pos):
-        protected_squares = set()
-        king = self.pieces.pop(king_pos)
-        self.pieces[king_pos] = Empty()
-        for pos, piece in self.pieces.items():
-            if piece.team == team:
-                protected_squares.update(piece.protects(self, pos))
-        self.pieces[king_pos] = king
-        return protected_squares
     
     def possible_moves(self, team, check_legal = True):
         moves = set()
@@ -136,7 +125,10 @@ class Board:
                     images.append((image, [pos[0] - 1, 8 - pos[1]]))
         return images
 
+    # move a piece from a position to a square
     def move_to(self, pos, square):
+
+        # Move rook if castling
         if self.pieces[pos].is_king() and abs(pos[0] - square[0]) > 1:
             if self.pieces[pos].team == "White":
                 if square[0] == 7:
@@ -152,6 +144,7 @@ class Board:
                 if square[0] == 3:
                     self.pieces[(4, 8)] = self.pieces[(1, 8)]
                     self.pieces[(1, 8)] = Empty()
+        # normal piece move
         self.pieces[pos].move()
         self.pieces[square] = self.pieces[pos]
         self.pieces[pos] = Empty()

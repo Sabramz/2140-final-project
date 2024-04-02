@@ -64,22 +64,6 @@ class Pawn(Piece):
             moves.add((x+1, y-1))
         return moves
 
-    def protects(self, board, pos):
-        if self.team == "White":
-            return self.protected_white(board, pos)
-        else:
-            return self.protected_black(board, pos)
-        
-    def protected_white(self, board, pos):
-        x = pos[0]
-        y = pos[1]
-        return set([(x-1, y+1), (x+1,y+1)])
-
-    def protected_black(self, board, pos):
-        x = pos[0]
-        y = pos[1]
-        return set([(x-1, y-1), (x+1,y-1)])
-
     def to_image(self):
         file_name = ""
         if self.team == "White":

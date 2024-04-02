@@ -3,14 +3,15 @@ from abc import ABC, abstractmethod
 # An abstract piece in a game of Chess
 class Piece(ABC):
 
-    #                 row column   for debugging
-    def __init__(self, team, name):
+    #                  String String
+    def __init__(self, team,  name = ""):
         if team != "White" and team != "Black" and team != "empty":
             raise ValueError(str(team) + " is not a valid team")
         self.team = team
         self.name = name
         self.moved = False
 
+    # this piece's string representation (for debugging)
     def __repr__(self):
         return self.name
     
@@ -18,29 +19,29 @@ class Piece(ABC):
     @abstractmethod
     def possible_moves(self, board, pos, check_legal = True):
         pass
-
-    # Returns the set of squares that this pieces protects (incl teamates)
-    # @abstractmethod
-    def protects(self, board, pos):
-        return self.possible_moves(board, pos)
     
     # definition of sameness for a piece
     def same_piece(self, piece):
         return self.team == piece.team and self.name == self.name
 
+    # determine if this piece is a king
     def is_king(self):
         return False
 
+    # determine if this piece is a pawn
     def is_pawn(self):
         return False
 
+    # return this piece as a pygame surface
     @abstractmethod
     def to_image(self):
         pass
 
+    # to determine if this piece is an empty piece
     def empty(self):
         return False
 
+    # to update the movement state of this piece
     def move(self):
         pass
     

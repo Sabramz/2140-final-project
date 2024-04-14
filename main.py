@@ -20,6 +20,7 @@ pygame.init()
 pygame.freetype.init()
 my_font = pygame.freetype.SysFont(pygame.font.get_default_font(), 30)
 
+# Screen width and height
 SCREEN_X = 1280
 SCREEN_Y = 720
 screen = pygame.display.set_mode((SCREEN_X, SCREEN_Y))
@@ -28,6 +29,7 @@ running = True
 
 b = Board()
 
+# Board square graphics
 SQUARE_SIZE = 60
 BASE_X = math.floor((SCREEN_X - SQUARE_SIZE * 8) / 2)
 BASE_Y = math.floor((SCREEN_Y - SQUARE_SIZE * 8) / 2)
@@ -67,6 +69,7 @@ while running:
                 if white_turn:
                     selected_sq = ( math.ceil((mouse_pos[0] - BASE_X) / SQUARE_SIZE), \
                                     9 - math.ceil(((mouse_pos[1] - BASE_Y) / SQUARE_SIZE)))
+                    # pawn promotion
                     if pawn_at_end:
                         pawn = b.promotion("White")
                         x = pawn[0]
@@ -83,6 +86,7 @@ while running:
                             elif selected_sq[1] == 5:
                                 b.pieces[promote] = Bishop(team)
                                 pawn_at_end = False
+                    # invalid selection
                     elif 1 <= selected_sq[0] and selected_sq[0] <= 8 and 1 <= selected_sq[1] and selected_sq[1] <= 8:
                         if b.get_piece(selected_sq).team == "Black":
                             selected_sq = (-1, -1)
@@ -93,6 +97,7 @@ while running:
                 else:
                     selected_sq = ( 9 - math.ceil((mouse_pos[0] - BASE_X) / SQUARE_SIZE), \
                                     math.ceil(((mouse_pos[1] - BASE_Y) / SQUARE_SIZE)))
+                    # pawn promotion
                     if pawn_at_end:
                         pawn = b.promotion("Black")
                         x = pawn[0]
@@ -109,6 +114,7 @@ while running:
                             elif selected_sq[1] == 4:
                                 b.pieces[promote] = Bishop(team)
                                 pawn_at_end = False
+                    # invalid selection
                     elif 1 <= selected_sq[0] and selected_sq[0] <= 8 and 1 <= selected_sq[1] and selected_sq[1] <= 8:
                         if b.get_piece(selected_sq).team == "White":
                             selected_sq = (-1, -1)
@@ -125,12 +131,14 @@ while running:
                     move_to = ( 9 - math.ceil((mouse_pos[0] - BASE_X) / SQUARE_SIZE), \
                                 math.ceil(((mouse_pos[1] - BASE_Y) / SQUARE_SIZE)))
                 if 1 <= move_to[0] and move_to[0] <= 8 and 1 <= move_to[1] and move_to[1] <= 8:
+                    # move piece to square
                     if move_to in b.get_possible_moves(selected_sq):
                         b.move_to(selected_sq, (move_to[0], move_to[1]))
                         selected_sq = (-1, -1)
                         move_to = (-1, -1)
                         moved = True
                         piece_selected = False
+                    # select another piece
                     else:
                         if white_turn and b.get_piece(move_to).team == "Black" \
                         or not white_turn and b.get_piece(move_to).team == "White":
